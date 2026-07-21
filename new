@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🚕 Такси Расходы</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #08080e;
+            --bg-secondary: #11111e;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-card-hover: rgba(255, 255, 255, 0.08);
+            --border-card: rgba(255, 255, 255, 0.06);
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b8;
+            --text-muted: #6a6a82;
+            --accent-1: #7c6aff;
+            --accent-2: #4ecdc4;
+            --accent-3: #ff6b6b;
+            --accent-4: #ffd93d;
+            --accent-5: #6bcb77;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 0 0 100px 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-1);
+            border-radius: 10px;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(124, 106, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(124, 106, 255, 0.4);
+            }
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeUp 0.6s ease forwards;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .animate-slide-down {
+            animation: slideDown 0.4s ease forwards;
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease forwards;
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(8, 8, 14, 0.82);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-bottom: 1px solid var(--border-card);
+            padding: 16px 20px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .app-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .app-header .brand i {
+            font-size: 24px;
+            -webkit-text-fill-color: var(--accent-1);
+            background: none;
+            filter: drop-shadow(0 0 12px rgba(124, 106, 255, 0.3));
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== QUARTER SELECTOR ===== */
+        .quarter-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 50px;
+            padding: 4px 6px 4px 16px;
+            backdrop-filter: blur(10px);
+        }
+        .quarter-selector label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+        .quarter-selector select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 8px;
+            outline: none;
+            cursor: pointer;
+            min-width: 100px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a0a0b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            padding-right: 24px;
+        }
+        .quarter-selector select option {
+            background: #1a1a2e;
+            color: #f0f0f5;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-secondary);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 16px;
+        }
+        .btn-icon:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            transform: scale(1.05);
+        }
+        .btn-icon.active {
+            background: var(--accent-1);
+            color: #fff;
+            border-color: var(--accent-1);
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* ===== SUMMARY GRID ===== */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            padding: 16px 14px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            border-radius: 0 0 10px 10px;
+            opacity: 0.6;
+        }
+        .summary-card:nth-child(1)::before {
+            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+        }
+        .summary-card:nth-child(2)::before {
+            background: linear-gradient(90deg, var(--accent-3), var(--accent-4));
+        }
+        .summary-card:nth-child(3)::before {
+            background: linear-gradient(90deg, var(--accent-5), var(--accent-2));
+        }
+        .summary-card:nth-child(4)::before {
+            background: linear-gradient(90deg, var(--accent-4), var(--accent-3));
+        }
+
+        .summary-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-2px);
+        }
+
+        .summary-card .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .summary-card .label i {
+            font-size: 13px;
+        }
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 6px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff, #b0b0d0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .summary-card .sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ===== CHARTS ===== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+        .chart-card:hover {
+            background: var(--bg-card-hover);
+        }
+        .chart-card .chart-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-card .chart-title i {
+            font-size: 14px;
+            color: var(--accent-1);
+        }
+        .chart-card canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 200px;
+        }
+
+        /* ===== EXPENSE LIST ===== */
+        .expense-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .expense-section .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .expense-section .section-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .expense-section .section-header h3 i {
+            color: var(--accent-2);
+        }
+        .expense-section .section-header .badge {
+            font-size: 12px;
+            background: var(--bg-card-hover);
+            padding: 4px 12px;
+            border-radius: 50px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-card);
+        }
+
+        .expense-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-card);
+            transition: var(--transition);
+            animation: fadeUp 0.4s ease forwards;
+            gap: 10px;
+        }
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+        .expense-item:hover {
+            padding-left: 6px;
+        }
+
+        .expense-item .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+        .expense-item .icon-wrap {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .expense-item .info {
+            min-width: 0;
+        }
+        .expense-item .info .cat {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .expense-item .info .desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .expense-item .info .date {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .expense-item .amount {
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .expense-item .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 8px;
+            transition: var(--transition);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .expense-item .delete-btn:hover {
+            color: var(--accent-3);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state i {
+            font-size: 48px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ===== FLOATING ACTION BUTTON ===== */
+        .fab {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-1), #5a4adf);
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            font-weight: 300;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(124, 106, 255, 0.4);
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: float 3s ease-in-out infinite;
+        }
+        .fab:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow: 0 12px 48px rgba(124, 106, 255, 0.6);
+        }
+        .fab:active {
+            transform: scale(0.92);
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius) var(--radius) 0 0;
+            max-width: 500px;
+            width: 100%;
+            padding: 24px 20px 32px;
+            animation: slideDown 0.4s ease;
+            max-height: 92vh;
+            overflow-y: auto;
+            border-top: 1px solid var(--border-card);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-header h2 i {
+            color: var(--accent-1);
+        }
+        .modal-close {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .form-group label i {
+            margin-right: 6px;
+            color: var(--accent-1);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font);
+            font-size: 15px;
+            transition: var(--transition);
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 4px rgba(124, 106, 255, 0.15);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .form-group input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        @media (max-width: 480px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-1), #5a4adf);
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #fff;
+            font-family: var(--font);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 106, 255, 0.3);
+        }
+        .btn-submit:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== CATEGORY COLORS ===== */
+        .cat-fuel {
+            background: #ff6b6b;
+        }
+        .cat-insurance {
+            background: #4ecdc4;
+        }
+        .cat-wash {
+            background: #45b7d1;
+        }
+        .cat-fszn {
+            background: #96ceb4;
+        }
+        .cat-medic {
+            background: #ffd93d;
+            color: #1a1a2e;
+        }
+        .cat-repair {
+            background: #dda0dd;
+            color: #1a1a2e;
+        }
+        .cat-parts {
+            background: #ff9ff3;
+            color: #1a1a2e;
+        }
+        .cat-other {
+            background: #feca57;
+            color: #1a1a2e;
+        }
+
+        .text-fuel {
+            color: #ff6b6b;
+        }
+        .text-insurance {
+            color: #4ecdc4;
+        }
+        .text-wash {
+            color: #45b7d1;
+        }
+        .text-fszn {
+            color: #96ceb4;
+        }
+        .text-medic {
+            color: #ffd93d;
+        }
+        .text-repair {
+            color: #dda0dd;
+        }
+        .text-parts {
+            color: #ff9ff3;
+        }
+        .text-other {
+            color: #feca57;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 300;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-card);
+            padding: 12px 24px;
+            border-radius: 50px;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.4s ease;
+            pointer-events: auto;
+            transition: var(--transition);
+        }
+        .toast i {
+            color: var(--accent-2);
+            font-size: 18px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .app-header .brand {
+                font-size: 17px;
+            }
+            .app-header .brand i {
+                font-size: 20px;
+            }
+            .quarter-selector {
+                padding: 2px 4px 2px 12px;
+            }
+            .quarter-selector select {
+                font-size: 13px;
+                min-width: 80px;
+                padding-right: 20px;
+            }
+            .summary-card .value {
+                font-size: 20px;
+            }
+            .fab {
+                width: 54px;
+                height: 54px;
+                font-size: 24px;
+                bottom: 20px;
+                right: 20px;
+            }
+            .modal {
+                padding: 20px 16px 28px;
+            }
+            .expense-item .info .cat {
+                font-size: 13px;
+            }
+            .expense-item .amount {
+                font-size: 14px;
+            }
+        }
+
+        /* ===== UTILITY ===== */
+        .text-center {
+            text-align: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .gap-4 {
+            gap: 4px;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .w-full {
+            width: 100%;
+        }
+
+        /* ===== PRELOADER SHIMMER ===== */
+        .shimmer-loading {
+            background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 20px;
+            width: 100%;
+            margin: 4px 0;
+        }
+
+        /* Export button */
+        .export-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .export-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent-1);
+        }
+        .export-btn i {
+            font-size: 13px;
+        }
+
+        /* Quarter total in header */
+        .quarter-total-badge {
+            font-size: 13px;
+            background: rgba(124, 106, 255, 0.15);
+            border: 1px solid rgba(124, 106, 255, 0.2);
+            padding: 4px 16px;
+            border-radius: 50px;
+            color: var(--accent-1);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="app-header">
+        <div class="brand">
+            <i class="fas fa-car"></i>
+            <span>Такси Расходы</span>
+        </div>
+        <div class="header-actions">
+            <div class="quarter-selector">
+                <label><i class="far fa-calendar-alt"></i></label>
+                <select id="quarterSelect"></select>
+            </div>
+            <button class="btn-icon" id="themeToggle" title="Сменить тему (beta)">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="export-btn" id="exportBtn">
+                <i class="fas fa-file-export"></i> CSV
+            </button>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <div class="container" id="app">
+
+        <!-- Quarter total badge -->
+        <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <span class="quarter-total-badge" id="quarterTotalBadge">
+                <i class="fas fa-coins"></i> 0,00 BYN
+            </span>
+        </div>
+
+        <!-- ===== SUMMARY ===== -->
+        <div class="summary-grid" id="summaryGrid">
+            <div class="summary-card animate-fade-up" style="animation-delay:0.05s;">
+                <div class="label"><i class="fas fa-wallet"></i> Всего</div>
+                <div class="value" id="totalExpenses">0,00</div>
+                <div class="sub">BYN</div>
+            </div>
+            <div class="summary-card animate-fade-up" style="animation-delay:0.1s;">
+                <div class="label"><i class="fas fa-layer-group"></i> Категорий</div>
+                <div class="value" id="categoryCount">0</div>
+                <div class="sub">с расходами</div>
+            </div>
+            <div class="summary-card animate-fade-up" style="animation-delay:0.15s;">
+                <div class="label"><i class="fas fa-receipt"></i> Записей</div>
+                <div class="value" id="entryCount">0</div>
+                <div class="sub">в квартале</div>
+            </div>
+            <div class="summary-card animate-fade-up" style="animation-delay:0.2s;">
+                <div class="label"><i class="fas fa-arrow-up"></i> Среднее</div>
+                <div class="value" id="avgExpense">0,00</div>
+                <div class="sub">BYN / запись</div>
+            </div>
+        </div>
+
+        <!-- ===== CHARTS ===== -->
+        <div class="charts-grid">
+            <div class="chart-card animate-fade-up" style="animation-delay:0.1s;">
+                <div class="chart-title"><i class="fas fa-chart-pie"></i> По категориям</div>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-card animate-fade-up" style="animation-delay:0.15s;">
+                <div class="chart-title"><i class="fas fa-chart-bar"></i> Топ категорий</div>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ===== EXPENSE LIST ===== -->
+        <div class="expense-section animate-fade-up" style="animation-delay:0.2s;">
+            <div class="section-header">
+                <h3><i class="fas fa-list-ul"></i> Расходы</h3>
+                <span class="badge" id="listBadge">0 записей</span>
+            </div>
+            <div id="expenseList">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>Нет расходов за выбранный квартал</p>
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">Нажмите + чтобы добавить</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div style="text-align:center;padding:16px 0 8px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border-card);">
+            <i class="fas fa-database" style="margin-right:4px;"></i> Данные хранятся локально
+            <span style="margin:0 8px;">·</span>
+            <i class="fas fa-car"></i> Такси расходы BYN
+        </div>
+    </div>
+
+    <!-- ===== FAB ===== -->
+    <button class="fab" id="fabAdd" aria-label="Добавить расход">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Новый расход</h2>
+                <button class="modal-close" id="modalClose"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="expenseForm" autocomplete="off">
+                <input type="hidden" id="editId" value="" />
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-tag"></i> Категория</label>
+                        <select id="formCategory" required>
+                            <option value="fuel">⛽ Бензин</option>
+                            <option value="insurance">🛡️ Страховка</option>
+                            <option value="wash">🧼 Мойка</option>
+                            <option value="fszn">🏛️ ФСЗН</option>
+                            <option value="medic">🩺 Медик/Механик</option>
+                            <option value="repair">🔧 Ремонт на СТО</option>
+                            <option value="parts">⚙️ Запчасти</option>
+                            <option value="other">📌 Прочие</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-day"></i> Дата</label>
+                        <input type="date" id="formDate" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-money-bill-wave"></i> Сумма (BYN)</label>
+                    <input type="number" id="formAmount" placeholder="0.00" step="0.01" min="0" required />
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-pen"></i> Описание (необязательно)</label>
+                    <input type="text" id="formDesc" placeholder="Например: заправка, ТО, страховка..." />
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Сохранить
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================================
+        //  DATA LAYER
+        // ============================================================
+        const CATEGORIES = {
+            fuel: { label: 'Бензин', icon: 'fa-gas-pump', color: '#ff6b6b' },
+            insurance: { label: 'Страховка', icon: 'fa-shield', color: '#4ecdc4' },
+            wash: { label: 'Мойка', icon: 'fa-car-wash', color: '#45b7d1' },
+            fszn: { label: 'ФСЗН', icon: 'fa-building', color: '#96ceb4' },
+            medic: { label: 'Медик/Механик', icon: 'fa-user-md', color: '#ffd93d' },
+            repair: { label: 'Ремонт на СТО', icon: 'fa-wrench', color: '#dda0dd' },
+            parts: { label: 'Запчасти', icon: 'fa-cogs', color: '#ff9ff3' },
+            other: { label: 'Прочие', icon: 'fa-ellipsis-h', color: '#feca57' }
+        };
+
+        const CAT_KEYS = Object.keys(CATEGORIES);
+
+        let expenses = [];
+        let currentQuarter = '';
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        // ============================================================
+        //  STORAGE
+        // ============================================================
+        function loadExpenses() {
+            try {
+                const raw = localStorage.getItem('taxi_expenses');
+                if (raw) {
+                    expenses = JSON.parse(raw);
+                    if (!Array.isArray(expenses)) expenses = [];
+                } else {
+                    // Seed with sample data for demo
+                    expenses = generateSampleData();
+                    saveExpenses();
+                }
+            } catch {
+                expenses = [];
+            }
+            // ensure each has id
+            expenses = expenses.filter(e => e && typeof e === 'object').map(e => ({
+                ...e,
+                id: e.id || 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)
+            }));
+        }
+
+        function saveExpenses() {
+            localStorage.setItem('taxi_expenses', JSON.stringify(expenses));
+        }
+
+        function generateSampleData() {
+            const now = new Date();
+            const q = getQuarter(now);
+            const samples = [];
+            const cats = ['fuel', 'insurance', 'wash', 'fszn', 'medic', 'repair', 'parts', 'other'];
+            const descs = ['Заправка', 'Оплата страховки', 'Мойка', 'ФСЗН отчисление', 'Медосмотр', 'Ремонт ходовой',
+                'Замена масла', 'Прочие расходы'
+            ];
+            for (let i = 0; i < 14; i++) {
+                const d = new Date(now);
+                d.setDate(d.getDate() - i * 3 - Math.floor(Math.random() * 5));
+                const cat = cats[Math.floor(Math.random() * cats.length)];
+                samples.push({
+                    id: 's_' + Date.now() + '_' + i,
+                    date: d.toISOString().split('T')[0],
+                    category: cat,
+                    amount: +(Math.random() * 120 + 10).toFixed(2),
+                    description: descs[Math.floor(Math.random() * descs.length)] + ' #' + (i + 1)
+                });
+            }
+            // sort by date
+            samples.sort((a, b) => a.date.localeCompare(b.date));
+            return samples;
+        }
+
+        // ============================================================
+        //  QUARTER HELPERS
+        // ============================================================
+        function getQuarter(date) {
+            const d = new Date(date);
+            const y = d.getFullYear();
+            const m = d.getMonth();
+            const q = Math.floor(m / 3) + 1;
+            return `${y}-Q${q}`;
+        }
+
+        function getQuarterRange(quarter) {
+            const [year, q] = quarter.split('-Q');
+            const y = parseInt(year);
+            const qi = parseInt(q);
+            const startMonth = (qi - 1) * 3;
+            const endMonth = qi * 3 - 1;
+            const start = new Date(y, startMonth, 1);
+            const end = new Date(y, endMonth + 1, 0);
+            return { start, end };
+        }
+
+        function getAvailableQuarters() {
+            if (!expenses.length) return [];
+            const set = new Set();
+            expenses.forEach(e => {
+                if (e.date) set.add(getQuarter(e.date));
+            });
+            // add current quarter if not present
+            const now = getQuarter(new Date());
+            set.add(now);
+            return Array.from(set).sort();
+        }
+
+        function getExpensesForQuarter(quarter) {
+            if (!quarter) return [];
+            const { start, end } = getQuarterRange(quarter);
+            return expenses.filter(e => {
+                if (!e.date) return false;
+                const d = new Date(e.date);
+                return d >= start && d <= end;
+            });
+        }
+
+        // ============================================================
+        //  RENDER
+        // ============================================================
+        function renderQuarterSelector() {
+            const sel = document.getElementById('quarterSelect');
+            const qs = getAvailableQuarters();
+            sel.innerHTML = '';
+            qs.forEach(q => {
+                const opt = document.createElement('option');
+                opt.value = q;
+                const label = q.replace('-Q', ' Кв. ');
+                opt.textContent = label;
+                sel.appendChild(opt);
+            });
+            if (currentQuarter && qs.includes(currentQuarter)) {
+                sel.value = currentQuarter;
+            } else if (qs.length) {
+                sel.value = qs[qs.length - 1];
+                currentQuarter = sel.value;
+            } else {
+                const now = getQuarter(new Date());
+                sel.innerHTML = `<option value="${now}">${now.replace('-Q', ' Кв. ')}</option>`;
+                sel.value = now;
+                currentQuarter = now;
+            }
+        }
+
+        function renderAll() {
+            const q = currentQuarter;
+            if (!q) return;
+            const items = getExpensesForQuarter(q);
+            renderSummary(items);
+            renderCharts(items);
+            renderList(items);
+            document.getElementById('listBadge').textContent = items.length + ' записей';
+            // total badge
+            const total = items.reduce((s, e) => s + e.amount, 0);
+            document.getElementById('quarterTotalBadge').innerHTML =
+                `<i class="fas fa-coins"></i> ${total.toFixed(2)} BYN`;
+        }
+
+        function renderSummary(items) {
+            const total = items.reduce((s, e) => s + e.amount, 0);
+            const cats = new Set(items.map(e => e.category));
+            document.getElementById('totalExpenses').textContent = total.toFixed(2);
+            document.getElementById('categoryCount').textContent = cats.size;
+            document.getElementById('entryCount').textContent = items.length;
+            const avg = items.length ? total / items.length : 0;
+            document.getElementById('avgExpense').textContent = avg.toFixed(2);
+        }
+
+        function renderCharts(items) {
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+
+            // aggregate by category
+            const map = {};
+            CAT_KEYS.forEach(k => map[k] = 0);
+            items.forEach(e => {
+                if (map[e.category] !== undefined) map[e.category] += e.amount;
+            });
+
+            const labels = [];
+            const data = [];
+            const colors = [];
+            CAT_KEYS.forEach(k => {
+                if (map[k] > 0) {
+                    labels.push(CATEGORIES[k].label);
+                    data.push(map[k]);
+                    colors.push(CATEGORIES[k].color);
+                }
+            });
+
+            // if no data, show placeholder
+            if (data.length === 0) {
+                labels.push('Нет данных');
+                data.push(1);
+                colors.push('#333');
+            }
+
+            // Pie
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: 'transparent',
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#a0a0b8',
+                                font: { family: 'Inter', size: 10, weight: '500' },
+                                padding: 8,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                            }
+                        }
+                    },
+                    cutout: '65%',
+                }
+            });
+
+            // Bar (top 5)
+            const sorted = CAT_KEYS
+                .filter(k => map[k] > 0)
+                .sort((a, b) => map[b] - map[a])
+                .slice(0, 5);
+
+            const barLabels = sorted.map(k => CATEGORIES[k].label);
+            const barData = sorted.map(k => map[k]);
+            const barColors = sorted.map(k => CATEGORIES[k].color);
+
+            if (barLabels.length === 0) {
+                barLabels.push('Нет данных');
+                barData.push(1);
+                barColors.push('#333');
+            }
+
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'BYN',
+                        data: barData,
+                        backgroundColor: barColors.map(c => c + 'cc'),
+                        borderColor: barColors,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        barPercentage: 0.6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#6a6a82',
+                                font: { family: 'Inter', size: 10 },
+                                callback: v => v.toFixed(0),
+                            },
+                            grid: { color: 'rgba(255,255,255,0.04)' }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#6a6a82',
+                                font: { family: 'Inter', size: 10 },
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderList(items) {
+            const container = document.getElementById('expenseList');
+            if (!items.length) {
+                container.innerHTML = `
+                    <div class="empty-state animate-fade-in">
+                        <i class="fas fa-inbox"></i>
+                        <p>Нет расходов за выбранный квартал</p>
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:4px;">Нажмите + чтобы добавить</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // sort by date desc
+            const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date));
+
+            let html = '';
+            sorted.forEach((e, idx) => {
+                const cat = CATEGORIES[e.category] || CATEGORIES.other;
+                const icon = cat.icon || 'fa-circle';
+                const color = cat.color || '#888';
+                const label = cat.label || e.category;
+                const dateStr = formatDate(e.date);
+                const desc = e.description || '';
+                const amt = e.amount.toFixed(2);
+                const catClass = 'cat-' + e.category;
+                html += `
+                    <div class="expense-item animate-fade-up" style="animation-delay:${(idx % 10) * 0.03}s;">
+                        <div class="left">
+                            <div class="icon-wrap ${catClass}">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="info">
+                                <div class="cat">${label}</div>
+                                <div class="desc">${desc || '—'}</div>
+                                <div class="date"><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                            </div>
+                        </div>
+                        <div class="amount" style="color:${color};">${amt}</div>
+                        <button class="delete-btn" data-id="${e.id}" title="Удалить">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // delete handlers
+            container.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    deleteExpense(id);
+                });
+            });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // ============================================================
+        //  CRUD
+        // ============================================================
+        function addExpense(date, category, amount, description) {
+            const entry = {
+                id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                date: date,
+                category: category,
+                amount: parseFloat(amount),
+                description: description.trim() || '',
+            };
+            expenses.push(entry);
+            saveExpenses();
+            return entry;
+        }
+
+        function deleteExpense(id) {
+            if (!confirm('Удалить этот расход?')) return;
+            expenses = expenses.filter(e => e.id !== id);
+            saveExpenses();
+            renderAll();
+            showToast('🗑️ Расход удалён');
+        }
+
+        function editExpense(id, date, category, amount, description) {
+            const idx = expenses.findIndex(e => e.id === id);
+            if (idx === -1) return false;
+            expenses[idx] = { ...expenses[idx], date, category, amount: parseFloat(amount), description: description.trim() ||
+                '' };
+            saveExpenses();
+            return true;
+        }
+
+        // ============================================================
+        //  MODAL
+        // ============================================================
+        const modalOverlay = document.getElementById('modalOverlay');
+        const form = document.getElementById('expenseForm');
+        const editId = document.getElementById('editId');
+        const formDate = document.getElementById('formDate');
+        const formCategory = document.getElementById('formCategory');
+        const formAmount = document.getElementById('formAmount');
+        const formDesc = document.getElementById('formDesc');
+
+        function openModal(editData = null) {
+            modalOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            if (editData) {
+                editId.value = editData.id;
+                formDate.value = editData.date;
+                formCategory.value = editData.category;
+                formAmount.value = editData.amount;
+                formDesc.value = editData.description || '';
+                document.querySelector('.modal-header h2').innerHTML = '<i class="fas fa-edit"></i> Редактировать';
+                document.querySelector('.btn-submit i').className = 'fas fa-sync-alt';
+                document.querySelector('.btn-submit span')?.remove();
+                document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-sync-alt"></i> Обновить';
+            } else {
+                editId.value = '';
+                formDate.value = new Date().toISOString().split('T')[0];
+                formCategory.value = 'fuel';
+                formAmount.value = '';
+                formDesc.value = '';
+                document.querySelector('.modal-header h2').innerHTML = '<i class="fas fa-plus-circle"></i> Новый расход';
+                document.querySelector('.btn-submit').innerHTML = '<i class="fas fa-save"></i> Сохранить';
+            }
+            setTimeout(() => formDate.focus(), 100);
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+            form.reset();
+            editId.value = '';
+        }
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+
+        document.getElementById('fabAdd').addEventListener('click', () => openModal());
+
+        // ============================================================
+        //  FORM SUBMIT
+        // ============================================================
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const date = formDate.value;
+            const category = formCategory.value;
+            const amount = parseFloat(formAmount.value);
+            const description = formDesc.value;
+            const id = editId.value;
+
+            if (!date || !category || isNaN(amount) || amount <= 0) {
+                showToast('⚠️ Заполните все поля корректно');
+                return;
+            }
+
+            if (id) {
+                // edit
+                editExpense(id, date, category, amount, description);
+                showToast('✅ Расход обновлён');
+            } else {
+                addExpense(date, category, amount, description);
+                showToast('✅ Расход добавлен');
+            }
+
+            closeModal();
+            renderAll();
+            // update quarter selector if needed
+            const qs = getAvailableQuarters();
+            const sel = document.getElementById('quarterSelect');
+            if (!qs.includes(currentQuarter)) {
+                currentQuarter = qs[qs.length - 1] || currentQuarter;
+            }
+            renderQuarterSelector();
+            // re-render with correct quarter
+            renderAll();
+        });
+
+        // ============================================================
+        //  QUARTER SELECT CHANGE
+        // ============================================================
+        document.getElementById('quarterSelect').addEventListener('change', function() {
+            currentQuarter = this.value;
+            renderAll();
+        });
+
+        // ============================================================
+        //  EXPORT CSV
+        // ============================================================
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const items = getExpensesForQuarter(currentQuarter);
+            if (!items.length) {
+                showToast('📭 Нет данных для экспорта');
+                return;
+            }
+            const headers = ['Дата', 'Категория', 'Сумма (BYN)', 'Описание'];
+            const rows = items.map(e => {
+                const cat = CATEGORIES[e.category]?.label || e.category;
+                return [e.date, cat, e.amount.toFixed(2), e.description || ''];
+            });
+            const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `taxi_expenses_${currentQuarter}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast('📥 CSV экспортирован');
+        });
+
+        // ============================================================
+        //  THEME TOGGLE (light/dark demo)
+        // ============================================================
+        let isDark = true;
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            isDark = !isDark;
+            const root = document.documentElement;
+            if (isDark) {
+                root.style.setProperty('--bg-primary', '#08080e');
+                root.style.setProperty('--bg-secondary', '#11111e');
+                root.style.setProperty('--bg-card', 'rgba(255,255,255,0.04)');
+                root.style.setProperty('--bg-card-hover', 'rgba(255,255,255,0.08)');
+                root.style.setProperty('--border-card', 'rgba(255,255,255,0.06)');
+                root.style.setProperty('--text-primary', '#f0f0f5');
+                root.style.setProperty('--text-secondary', '#a0a0b8');
+                root.style.setProperty('--text-muted', '#6a6a82');
+                this.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                root.style.setProperty('--bg-primary', '#f0f2f8');
+                root.style.setProperty('--bg-secondary', '#ffffff');
+                root.style.setProperty('--bg-card', 'rgba(0,0,0,0.03)');
+                root.style.setProperty('--bg-card-hover', 'rgba(0,0,0,0.06)');
+                root.style.setProperty('--border-card', 'rgba(0,0,0,0.08)');
+                root.style.setProperty('--text-primary', '#1a1a2e');
+                root.style.setProperty('--text-secondary', '#4a4a6a');
+                root.style.setProperty('--text-muted', '#8a8aaa');
+                this.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            // re-render charts with new colors
+            renderCharts(getExpensesForQuarter(currentQuarter));
+            showToast(isDark ? '🌙 Тёмная тема' : '☀️ Светлая тема');
+        });
+
+        // ============================================================
+        //  TOAST
+        // ============================================================
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast animate-slide-down';
+            toast.innerHTML = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2200);
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        loadExpenses();
+        currentQuarter = getAvailableQuarters().pop() || getQuarter(new Date());
+        renderQuarterSelector();
+        renderAll();
+
+        // Handle storage changes from other tabs
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'taxi_expenses') {
+                loadExpenses();
+                renderAll();
+            }
+        });
+
+        // Keyboard shortcut: Escape to close modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        console.log('🚕 Такси Расходы v1.0 — данные в localStorage');
+        console.log(`📊 ${expenses.length} записей, текущий квартал: ${currentQuarter}`);
+    </script>
+
+</body>
+</html>
