@@ -1,6 +1,0 @@
-aiogram==3.10.0
-matplotlib
-pillow
-python-dotenv
-APScheduler
-openpyxl
